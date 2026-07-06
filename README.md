@@ -3,6 +3,8 @@
 向 Kraino 致敬的復古動作平台遊戲 demo——戴禮帽的骷髏紳士 Mort，提著鐮刀穿越墓園之夜。
 **全部素材（像素圖、音效、BGM）皆由程式生成，零外部資源、零版權疑慮。**
 
+**▶ 線上遊玩：<https://healon.github.io/Guerrero/>**（手機可「加入主畫面」全螢幕、離線可玩）
+
 ![tech](https://img.shields.io/badge/Phaser-3.87-8a4df2) ![tech](https://img.shields.io/badge/Vite-6-8df23c)
 
 ## 執行

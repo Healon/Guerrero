@@ -1,5 +1,14 @@
 # GRAVE GENT 單關 demo — 完工報告
 
+> 追記 2026-07-06（第三輪）：部署上線。
+> **https://healon.github.io/Guerrero/** ・repo https://github.com/Healon/Guerrero（公開）
+> GitHub Pages（Actions workflow 自動部署，push main 即上線）＋PWA 全套
+> （manifest／icons／版本化 SW／直向遮罩）。上限掃描發現並修掉「SW 快取隨
+> 部署次數無限膨脹」問題：build 蓋版號進 cache 名、activate 整組清舊版。
+> 驗證：build 綠、prod preview smoke 過（fixedStep=true）、CI 首跑 success、
+> 線上四資源 200、SW 版號隨部署輪替。`.claude/settings.local.json` 於 push
+> 前移出版控並 gitignore。真機四項（可玩/有聲/加入主畫面/離線）由 Lin 驗收。
+
 > 追記 2026-07-06（第二輪）：新增武器升級系統 SPIRIT BLADE（刀氣）。
 > 拾取點在跳台頂（t=118）；揮刀射出 250px/s、150px 射程刀氣；沿用 swingId
 > 去重防「近戰＋刀氣」雙倍傷害；死亡保留、新輪重置；HUD 圖示切換充能版。
