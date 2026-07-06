@@ -617,17 +617,19 @@ export default class GameScene extends Phaser.Scene {
 
   // ---------------------------------------------------------- 亡靈追蹤火
   spawnSoulFire(player) {
-    const f = this.fires.create(player.x - player.facing * 6, player.y - 12, 'fire_0');
+    // 出手＝向前上拋物線；armMs 後開始索敵，無目標則過弧頂轉平飛到壽命盡頭
+    const f = this.fires.create(player.x + player.facing * 10, player.y - 10, 'fire_0');
     f.setDepth(11);
     f.fireId = this.fireSeq++;
     f.bornAt = this.time.now;
-    f.homingAt = f.bornAt + SOULFIRE.floatMs;
+    f.armAt = f.bornAt + SOULFIRE.armMs;
     f.target = null;
+    f.glide = false;
     f.trailAt = 0;
     f.facing = player.facing;
     f.body.setAllowGravity(false);
     f.body.setSize(8, 8);
-    f.setVelocity(-player.facing * 26, SOULFIRE.spawnVy);
+    f.setVelocity(player.facing * SOULFIRE.launchVx, SOULFIRE.launchVy);
     f.play('fire_anim');
     f.glowImg = this.add.image(f.x, f.y, 'glow_g')
       .setBlendMode(Phaser.BlendModes.ADD).setScale(0.7).setAlpha(0.5).setDepth(10);
@@ -672,7 +674,7 @@ export default class GameScene extends Phaser.Scene {
   }
 
   // ---------------------------------------------------------- update
-  update(time) {
+  update(time, delta) {
     const k = this.keys;
     const vpad = this.registry.get('vpad');
 
@@ -743,29 +745,32 @@ export default class GameScene extends Phaser.Scene {
       }
     }
 
-    // 追蹤火：出生漂浮 → 索敵追蹤 → 無目標漂移 → 壽命熄滅
+    // 追蹤火：前上拋物線出手 → 索敵追蹤；無目標過弧頂轉平飛到壽命盡頭
     for (const f of this.fires.getChildren()) {
       if (!f.active) continue;
-      if (time > f.bornAt + SOULFIRE.lifeMs) { this.destroyFire(f, false); continue; }
+      if (time > f.bornAt + SOULFIRE.lifeMs) { this.destroyFire(f); continue; }
       if (f.glowImg?.active) {
         f.glowImg.setPosition(f.x, f.y).setAlpha(0.35 + 0.2 * Math.sin(time / 90));
       }
-      if (time >= f.homingAt) {
-        if (!f.target || !f.target.active || f.target.alive === false) {
-          f.target = this.findNearestTarget(f.x, f.y, SOULFIRE.acquireR);
-        }
-        if (f.target) {
-          const ang = Phaser.Math.Angle.Between(f.x, f.y, f.target.x, f.target.y - 4);
-          f.body.setVelocity(
-            Phaser.Math.Linear(f.body.velocity.x, Math.cos(ang) * SOULFIRE.speed, SOULFIRE.steer),
-            Phaser.Math.Linear(f.body.velocity.y, Math.sin(ang) * SOULFIRE.speed, SOULFIRE.steer)
-          );
-        } else {
-          f.body.setVelocity(
-            Phaser.Math.Linear(f.body.velocity.x, f.facing * 34, 0.05),
-            Math.sin(time / 160 + f.fireId) * 22
-          );
-        }
+      if (time >= f.armAt && (!f.target || !f.target.active || f.target.alive === false)) {
+        f.target = this.findNearestTarget(f.x, f.y, SOULFIRE.acquireR);
+      }
+      if (f.target) {
+        const ang = Phaser.Math.Angle.Between(f.x, f.y, f.target.x, f.target.y - 4);
+        f.body.setVelocity(
+          Phaser.Math.Linear(f.body.velocity.x, Math.cos(ang) * SOULFIRE.speed, SOULFIRE.steer),
+          Phaser.Math.Linear(f.body.velocity.y, Math.sin(ang) * SOULFIRE.speed, SOULFIRE.steer)
+        );
+      } else if (!f.glide) {
+        // 拋物線段：手動重力下墜；過弧頂（vy 轉正）即進入滑翔
+        f.body.velocity.y += SOULFIRE.arcGravity * (delta / 1000);
+        if (f.body.velocity.y >= 0) f.glide = true;
+      } else {
+        // 滑翔段：拉平、直飛面向方向
+        f.body.setVelocity(
+          Phaser.Math.Linear(f.body.velocity.x, f.facing * SOULFIRE.speed, 0.06),
+          Phaser.Math.Linear(f.body.velocity.y, 0, 0.15)
+        );
       }
       // 殘影（update 驅動，不用 tween）
       if (time > f.trailAt) {

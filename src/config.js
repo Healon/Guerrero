@@ -77,12 +77,14 @@ export const WEAPON = {
 };
 
 export const SOULFIRE = {
-  speed: 165,         // 追蹤火飛行速度
+  speed: 165,         // 追蹤／滑翔飛行速度
   steer: 0.09,        // 轉向趨近係數（越大轉彎越銳利）
   acquireR: 220,      // 索敵半徑
-  lifeMs: 1800,       // 壽命（需能覆蓋索敵半徑：出生後飄+加速仍追得到 220px 目標）
-  spawnVy: -80,       // 出生上飄初速
-  floatMs: 250        // 出生漂浮期（之後才開始追蹤）
+  lifeMs: 1800,       // 壽命（無目標時＝往前飛的「盡頭」）
+  launchVx: 150,      // 出手前拋水平初速（乘 facing，向前）
+  launchVy: -170,     // 出手上拋初速（拋物線弧高 ≈ 28px）
+  arcGravity: 520,    // 未鎖定時的下墜加速度（畫出拋物線）
+  armMs: 150          // 出手後至少此時間才開始索敵（保留前拋起手視覺）
 };
 
 export const AUDIO = {

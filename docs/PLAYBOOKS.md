@@ -11,8 +11,9 @@
    - 玩家強度：`maxHp`、`lives`、`attackCooldownMs`
    - 敵人：`ENEMIES.<種類>.{hp,speed,dmg,aggroR}`
    - Boss：`BOSS.{hp,phase2At,hoverMs,swoopSpeed,recoverMs}`（recoverMs＝輸出窗口，加大變簡單）
-   - 武器：`WEAPON.{waveSpeed,waveMaxDist}`、`SOULFIRE.{speed,steer,acquireR,lifeMs}`
-     （**lifeMs×speed 必須 ≥ acquireR 的實際到達需求**，否則「追一半熄滅」——已踩過）
+   - 武器：`WEAPON.{waveSpeed,waveMaxDist}`、`SOULFIRE.{speed,steer,acquireR,lifeMs,launchVx,launchVy,arcGravity,armMs}`
+     （**lifeMs×speed 必須 ≥ acquireR 的實際到達需求**，否則「追一半熄滅」——已踩過；
+     動線＝前上拋物線出手→armMs 後索敵→無目標過弧頂轉平飛到 lifeMs 盡頭）
 3. 驗證：改移動/跳躍 → 跑回歸 B1/B2；改傷害 → F2d＋G4b；改關卡幾何相關 → 實跳。
 
 ## 劇本 2：加新敵人
