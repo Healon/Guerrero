@@ -454,6 +454,10 @@ export default class GameScene extends Phaser.Scene {
     // 鏡頭鎖進競技場
     this.cameras.main.setBounds(gT * TILE, 0, worldW - gT * TILE, GAME_H);
 
+    // boss 戰死亡改重生於競技場入口（gate 右側，鏡頭範圍內），
+    // 而非關卡中段燈籠——後者在封閉 gate 外，會導致看不到人＋被門擋住
+    this.bossCheckpoint = { x: tx(gT + 4), y: ky(3) - 14 };
+
     this.boss = new Reaper(this, tx(LEVEL.boss.spawnT), 40);
     this.physics.add.overlap(this.player, this.boss, (p, b) => {
       if (b.alive && b.state !== 'intro') p.takeDamage(BOSS.contactDmg, b.x);
@@ -532,7 +536,15 @@ export default class GameScene extends Phaser.Scene {
         this.cameras.main.fadeOut(250, 6, 5, 12);
         this.time.delayedCall(300, () => {
           this.registry.set('hp', this.registry.get('maxHp'));
-          this.player.reviveAt(this.checkpoint.x, this.checkpoint.y);
+          const inBossFight = this.bossStarted && this.boss && this.boss.alive;
+          const cp = inBossFight ? this.bossCheckpoint : this.checkpoint;
+          this.player.reviveAt(cp.x, cp.y);
+          if (inBossFight) {
+            // 清掉殘留迴旋鐮刀、把 boss 拉回中央、鏡頭立即對準重生點
+            this.projs.clear(true, true);
+            this.boss.resetForRespawn(this.time.now, tx(LEVEL.boss.spawnT));
+            this.cameras.main.centerOn(cp.x, GAME_H / 2);
+          }
           this.cameras.main.fadeIn(250, 6, 5, 12);
           this.transitioning = false;
         });

@@ -1,5 +1,18 @@
 # GRAVE GENT 單關 demo — 完工報告
 
+> 追記 2026-07-06（第四輪，上線後修 bug）：Boss 戰重生鏡頭死鎖。
+> 症狀：boss 戰中途死亡重生後看不到主角與 boss、且被封門擋在競技場外。
+> 根因：boss 觸發時鏡頭 bounds 鎖進競技場（gate 右側），但死亡重生仍用
+> 關卡中段燈籠 checkpoint（x=2696），該點在封閉 gate（x=2864）外，落在
+> 鏡頭可見範圍 [2864,3344] 左外側 → 看不到人且回不去（死鎖）。
+> 修法：startBossFight 設 bossCheckpoint＝競技場入口（gate+4 磚）；死亡重生
+> 若 boss 戰進行中改用此點，並清場上迴旋鐮刀、把 boss 拉回中央 hover 給喘息、
+> 鏡頭 centerOn 重生點。實測：重生後主角(2936)與 boss(3205)皆在可見範圍；
+> 回歸一般 checkpoint 重生(回燈籠 2696)不受影響、boss 戰重生後可續戰至 Clear。
+> 註：此為邏輯 bug，非「上限崩潰面掃描」涵蓋範圍；教訓＝鏡頭 bounds 與重生點
+> 必須成對檢查，任一改動要同步驗證另一個。經 Lin 確認 boss 重生機制維持現況
+> （回入口、Boss 保留血量），不再更動規則。
+
 > 追記 2026-07-06（第三輪）：部署上線。
 > **https://healon.github.io/Guerrero/** ・repo https://github.com/Healon/Guerrero（公開）
 > GitHub Pages（Actions workflow 自動部署，push main 即上線）＋PWA 全套

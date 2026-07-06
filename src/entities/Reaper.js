@@ -94,6 +94,21 @@ export default class Reaper extends Phaser.Physics.Arcade.Sprite {
     }
   }
 
+  // 玩家在 boss 戰死亡重生後呼叫：把 boss 拉回競技場中上方漂浮，
+  // 給重生的玩家一段喘息，避免一出生就吃招陷入死亡循環
+  resetForRespawn(time, x) {
+    if (!this.alive) return;
+    this.state = 'hover';
+    this.stateUntil = time + BOSS.hoverMs;
+    this.attackIdx = 0;
+    this.thrown = false;
+    this.body.setVelocity(0, 0);
+    this.setAlpha(1);
+    this.clearTint();
+    this.setPosition(x, HOVER_Y);
+    this.play('reaper_float_anim', true);
+  }
+
   update(time, player) {
     if (this.glow?.active) {
       this.glow.setPosition(this.x, this.y - 4).setAlpha((0.4 + 0.15 * Math.sin(time / 220)) * this.alpha);
