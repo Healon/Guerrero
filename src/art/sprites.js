@@ -689,6 +689,54 @@ const ITEM_WAVE_0 = [
 ];
 const ITEM_WAVE_1 = charMap(ITEM_WAVE_0, { W: 't', t: 'W', p: 'P' });
 
+// ---------- 亡靈追蹤火（SOUL FIRE）----------
+const FIRE_0 = [
+  '....g.....',
+  '....gg....',
+  '...ggg....',
+  '...gggg...',
+  '..ggGgg...',
+  '..gGWGgg..',
+  '.ggGWWGg..',
+  '.ggGWGgg..',
+  '..ggGgg...',
+  '..ggggg...',
+  '...ggg....',
+  '..........'
+];
+const FIRE_1 = [
+  '.....g....',
+  '....gg....',
+  '....ggg...',
+  '...gggg...',
+  '...gGgg...',
+  '..gGWGgg..',
+  '..gGWWGg..',
+  '.ggGWGgg..',
+  '..ggGggg..',
+  '..ggggg...',
+  '...gg.....',
+  '..........'
+];
+
+const ITEM_FIRE_0 = [
+  '......gg......',
+  '.g...gggg..g..',
+  '.....gggg.....',
+  '....gGWGg.....',
+  '..g.gGWWGg.g..',
+  '....ggGGgg....',
+  '.....gggg.....',
+  '..g...gg...g..',
+  '....SSSSSS....',
+  '...SssssssS...',
+  '....SSSSSS....',
+  '.....S..S.....',
+  '....SSSSSS....',
+  '..............'
+];
+const ITEM_FIRE_1 = charMap(ITEM_FIRE_0, { W: 'G', G: 'W', g: 'g' });
+
 // ---------- HUD ----------
 const HUD_SCYTHE = [
   '.WWWWWWWWW..',
@@ -713,6 +761,16 @@ const HUD_SCYTHE2 = [
   '......uu....',
   '.....uuu....',
   '............'
+];
+const HUD_FIRE = [
+  '...g....',
+  '..gg....',
+  '..ggg...',
+  '.gGWg...',
+  '.gGWGg..',
+  '.ggGgg..',
+  '..ggg...',
+  '........'
 ];
 const HUD_SKULL = [
   '..wwww...',
@@ -818,6 +876,11 @@ export function registerAllSprites(scene) {
   // 刀氣與升級道具
   framesFromRows(scene, 'wave', [WAVE_0, WAVE_1]);
   framesFromRows(scene, 'item_wave', [ITEM_WAVE_0, ITEM_WAVE_1]);
+
+  // 亡靈追蹤火
+  framesFromRows(scene, 'fire', [FIRE_0, FIRE_1]);
+  framesFromRows(scene, 'item_fire', [ITEM_FIRE_0, ITEM_FIRE_1]);
+  texFromRows(scene, 'hud_fire', HUD_FIRE);
 
   // HUD 與觸控
   texFromRows(scene, 'hud_scythe', HUD_SCYTHE);

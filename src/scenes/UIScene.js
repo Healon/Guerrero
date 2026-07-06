@@ -38,6 +38,7 @@ export default class UIScene extends Phaser.Scene {
     // 不在此 addPointer——UIScene 每次重啟都會執行，會讓全域 pointer 池無限增生
     // ---- HP 條 ----
     this.weaponIcon = this.add.image(5, 5, 'hud_scythe').setOrigin(0, 0).setDepth(100);
+    this.fireIcon = this.add.image(78, 6, 'hud_fire').setOrigin(0, 0).setDepth(100).setVisible(false);
     const maxHp = this.registry.get('maxHp') || 6;
     this.hpSegs = [];
     for (let i = 0; i < maxHp; i++) {
@@ -167,6 +168,7 @@ export default class UIScene extends Phaser.Scene {
       case 'bossMax': this.drawBoss(); break;
       case 'paused': this.pausedGroup.setVisible(!!value); break;
       case 'weaponLv': this.drawWeapon(value); break;
+      case 'soulFire': this.fireIcon.setVisible(!!value); break;
     }
   }
 
@@ -176,6 +178,7 @@ export default class UIScene extends Phaser.Scene {
     this.livesNum.set(this.registry.get('lives') ?? 3);
     this.drawBoss();
     this.drawWeapon(this.registry.get('weaponLv') ?? 1);
+    this.fireIcon.setVisible(!!this.registry.get('soulFire'));
     this.pausedGroup.setVisible(!!this.registry.get('paused'));
   }
 

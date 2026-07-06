@@ -134,6 +134,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         onComplete: () => s.destroy()
       });
       if (upgraded) this.scene.spawnWave(this);
+      if (this.scene.registry.get('soulFire')) this.scene.spawnSoulFire(this);
     });
   }
 

@@ -34,6 +34,8 @@ export default class BootScene extends Phaser.Scene {
     mk('reaper_float_anim', 'reaper_float', [0, 1], 3);
     mk('wave_anim', 'wave', [0, 1], 12);
     mk('item_wave_anim', 'item_wave', [0, 1], 4);
+    mk('fire_anim', 'fire', [0, 1], 10);
+    mk('item_fire_anim', 'item_fire', [0, 1], 4);
 
     document.getElementById('boot-msg')?.remove();
 

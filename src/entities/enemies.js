@@ -15,15 +15,14 @@ class BaseEnemy extends Phaser.Physics.Arcade.Sprite {
     this.dmg = cfg.dmg;
     this.alive = true;
     this.lastSwing = -1;
+    this.lastFire = -1;
     this.setDepth(8);
   }
 
-  /** 回傳是否實際造成傷害（刀氣靠此決定要不要消失） */
-  hitByScythe(swingId, fromX) {
-    if (!this.alive || this.lastSwing === swingId) return false;
-    this.lastSwing = swingId;
+  /** 共用受擊內文（近戰/刀氣與追蹤火都走這裡） */
+  applyHit(fromX, snd = 'hit') {
     this.hp -= 1;
-    sfx.hit();
+    sfx[snd]();
     this.setTintFill(0xffffff);
     this.scene.time.delayedCall(70, () => { if (this.alive) this.clearTint(); });
     if (this.body && !this.body.immovable) {
@@ -31,6 +30,21 @@ class BaseEnemy extends Phaser.Physics.Arcade.Sprite {
     }
     this.scene.cameras.main.shake(40, 0.002);
     if (this.hp <= 0) this.die();
+  }
+
+  /** 回傳是否實際造成傷害（刀氣靠此決定要不要消失） */
+  hitByScythe(swingId, fromX) {
+    if (!this.alive || this.lastSwing === swingId) return false;
+    this.lastSwing = swingId;
+    this.applyHit(fromX);
+    return true;
+  }
+
+  /** 追蹤火命中：獨立 lastFire 去重，不動 lastSwing（保護刀氣防雙倍） */
+  hitByFire(fireId, fromX) {
+    if (!this.alive || this.lastFire === fireId) return false;
+    this.lastFire = fireId;
+    this.applyHit(fromX, 'fireHit');
     return true;
   }
 

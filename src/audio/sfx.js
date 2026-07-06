@@ -110,6 +110,8 @@ export const sfx = {
   },
   blip()      { tone({ type: 'square', f0: 880, dur: 0.05, vol: 0.25 }); },
   wave()      { tone({ type: 'square', f0: 540, f1: 920, dur: 0.07, vol: 0.2 }); noise({ f: 2800, f1: 4400, dur: 0.06, vol: 0.12, q: 2 }); },
+  fireSpawn() { tone({ type: 'triangle', f0: 300, f1: 660, dur: 0.1, vol: 0.12 }); noise({ f: 1200, f1: 3500, dur: 0.12, vol: 0.14, q: 1.5 }); },
+  fireHit()   { tone({ type: 'square', f0: 380, f1: 160, dur: 0.09, vol: 0.3 }); noise({ type: 'lowpass', f: 800, dur: 0.08, vol: 0.18 }); },
   powerup()   {
     [440, 554, 659, 880, 1108].forEach((f, i) =>
       tone({ type: 'triangle', f0: f, dur: 0.12, vol: 0.3, delay: i * 0.07 }));

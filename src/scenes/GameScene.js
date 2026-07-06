@@ -2,7 +2,7 @@
 // 遊戲主場景：墓園之夜
 // ============================================================
 import Phaser from 'phaser';
-import { GAME_W, GAME_H, TILE, PHYS, PLAYER, COMBAT, BOSS, WEAPON } from '../config.js';
+import { GAME_W, GAME_H, TILE, PHYS, PLAYER, COMBAT, BOSS, WEAPON, SOULFIRE } from '../config.js';
 import { LEVEL, worldW, tx, ky, groundHAt } from '../level/graveyard.js';
 import Player from '../entities/Player.js';
 import { Ghost, Ghoul, Hopper } from '../entities/enemies.js';
@@ -23,6 +23,9 @@ export default class GameScene extends Phaser.Scene {
     this.registry.set('bossMax', null);
     this.registry.set('paused', false);
     this.registry.set('weaponLv', 1); // 升級跨死亡保留，新一輪重置
+    this.registry.set('soulFire', false); // 第二升級（獨立於刀氣，先拿哪個都行）
+    this.fireSeq = 1000000000; // 火球唯一 id 起點，與 swingId 值域錯開
+    this.fireTrails = [];
 
     this.bossStarted = false;
     this.boss = null;
@@ -99,6 +102,14 @@ export default class GameScene extends Phaser.Scene {
     });
     this.physics.add.overlap(this.waves, this.terrain, (w) => this.destroyWave(w));
     this.physics.add.overlap(this.waves, this.gateGroup, (w) => this.destroyWave(w));
+
+    // 追蹤火判定：獨立 fireId 去重；穿牆（刻意不與地形/木箱/閘門碰撞）
+    const fireHitCb = (f, e) => {
+      if (!f.active || !e.alive) return;
+      if (e.hitByFire(f.fireId, f.x)) this.destroyFire(f);
+    };
+    this.physics.add.overlap(this.fires, this.airEnemies, fireHitCb);
+    this.physics.add.overlap(this.fires, this.groundEnemies, fireHitCb);
 
     // ---- 鏡頭 ----
     const cam = this.cameras.main;
@@ -300,19 +311,21 @@ export default class GameScene extends Phaser.Scene {
     for (const pu of LEVEL.powerups || []) {
       const x = tx(pu.t);
       const y = ky(pu.k) - 7;
-      const glow = this.add.image(x, y, 'glow_c')
+      const isFire = pu.kind === 'fire';
+      const glow = this.add.image(x, y, isFire ? 'glow_g' : 'glow_c')
         .setBlendMode(Phaser.BlendModes.ADD).setAlpha(0.6).setDepth(5);
-      const item = this.pickups.create(x, y, 'item_wave_0');
+      const item = this.pickups.create(x, y, isFire ? 'item_fire_0' : 'item_wave_0');
       item.kind = pu.kind;
       item.setDepth(6);
       item.body.setAllowGravity(false);
       item.body.setSize(12, 12);
       item.glowImg = glow;
-      item.play('item_wave_anim');
+      item.play(isFire ? 'item_fire_anim' : 'item_wave_anim');
     }
 
-    // 刀氣
+    // 刀氣與追蹤火
     this.waves = this.physics.add.group({ allowGravity: false });
+    this.fires = this.physics.add.group({ allowGravity: false });
   }
 
   spawnStaticSkull(x, y) {
@@ -348,6 +361,26 @@ export default class GameScene extends Phaser.Scene {
 
   collect(item) {
     if (!item.active || this.player.dead) return;
+    if (item.kind === 'fire') {
+      this.registry.set('soulFire', true);
+      sfx.powerup();
+      this.burst(item.x, item.y, 0x8df23c, 16);
+      this.cameras.main.flash(180, 40, 120, 60);
+      const txt = this.add.text(item.x, item.y - 14, 'SOUL FIRE!', {
+        fontFamily: 'monospace', fontSize: '11px', fontStyle: 'bold',
+        color: '#8df23c', stroke: '#12101c', strokeThickness: 3
+      }).setOrigin(0.5).setDepth(60);
+      const sub = this.add.text(item.x, item.y - 2, 'SPIRITS AVENGE YOUR SCYTHE', {
+        fontFamily: 'monospace', fontSize: '7px', color: '#9df2ff'
+      }).setOrigin(0.5).setDepth(60);
+      this.tweens.add({
+        targets: [txt, sub], y: '-=18', alpha: 0, duration: 1800,
+        onComplete: () => { txt.destroy(); sub.destroy(); }
+      });
+      item.glowImg?.destroy();
+      item.destroy();
+      return;
+    }
     if (item.kind === 'wave') {
       this.registry.set('weaponLv', 2);
       sfx.powerup();
@@ -470,6 +503,11 @@ export default class GameScene extends Phaser.Scene {
         this.destroyWave(w);
       }
     });
+    this.physics.add.overlap(this.boss, this.fires, (b, f) => {
+      if (this.boss?.alive && f.active && this.boss.hitByFire(f.fireId)) {
+        this.destroyFire(f);
+      }
+    });
 
     this.registry.set('bossMax', BOSS.hp);
     this.registry.set('bossHp', BOSS.hp);
@@ -577,6 +615,47 @@ export default class GameScene extends Phaser.Scene {
     w.destroy();
   }
 
+  // ---------------------------------------------------------- 亡靈追蹤火
+  spawnSoulFire(player) {
+    const f = this.fires.create(player.x - player.facing * 6, player.y - 12, 'fire_0');
+    f.setDepth(11);
+    f.fireId = this.fireSeq++;
+    f.bornAt = this.time.now;
+    f.homingAt = f.bornAt + SOULFIRE.floatMs;
+    f.target = null;
+    f.trailAt = 0;
+    f.facing = player.facing;
+    f.body.setAllowGravity(false);
+    f.body.setSize(8, 8);
+    f.setVelocity(-player.facing * 26, SOULFIRE.spawnVy);
+    f.play('fire_anim');
+    f.glowImg = this.add.image(f.x, f.y, 'glow_g')
+      .setBlendMode(Phaser.BlendModes.ADD).setScale(0.7).setAlpha(0.5).setDepth(10);
+    sfx.fireSpawn();
+  }
+
+  destroyFire(f, fx = true) {
+    if (!f.active) return;
+    if (fx) this.burst(f.x, f.y, 0x8df23c, 6);
+    f.glowImg?.destroy();
+    f.destroy();
+  }
+
+  findNearestTarget(x, y, r) {
+    let best = null;
+    let bd = r;
+    for (const e of this.enemyList) {
+      if (!e.active || !e.alive) continue;
+      const d = Phaser.Math.Distance.Between(x, y, e.x, e.y);
+      if (d < bd) { bd = d; best = e; }
+    }
+    if (this.boss?.alive) {
+      const d = Phaser.Math.Distance.Between(x, y, this.boss.x, this.boss.y);
+      if (d < bd) { bd = d; best = this.boss; }
+    }
+    return best;
+  }
+
   // ---------------------------------------------------------- 特效
   burst(x, y, tint, n = 10) {
     const em = this.add.particles(x, y, 'px2', {
@@ -662,6 +741,47 @@ export default class GameScene extends Phaser.Scene {
       if (Math.abs(w.x - w.bornX) > WEAPON.waveMaxDist || time > w.bornAt + WEAPON.waveLifeMs) {
         this.destroyWave(w, false);
       }
+    }
+
+    // 追蹤火：出生漂浮 → 索敵追蹤 → 無目標漂移 → 壽命熄滅
+    for (const f of this.fires.getChildren()) {
+      if (!f.active) continue;
+      if (time > f.bornAt + SOULFIRE.lifeMs) { this.destroyFire(f, false); continue; }
+      if (f.glowImg?.active) {
+        f.glowImg.setPosition(f.x, f.y).setAlpha(0.35 + 0.2 * Math.sin(time / 90));
+      }
+      if (time >= f.homingAt) {
+        if (!f.target || !f.target.active || f.target.alive === false) {
+          f.target = this.findNearestTarget(f.x, f.y, SOULFIRE.acquireR);
+        }
+        if (f.target) {
+          const ang = Phaser.Math.Angle.Between(f.x, f.y, f.target.x, f.target.y - 4);
+          f.body.setVelocity(
+            Phaser.Math.Linear(f.body.velocity.x, Math.cos(ang) * SOULFIRE.speed, SOULFIRE.steer),
+            Phaser.Math.Linear(f.body.velocity.y, Math.sin(ang) * SOULFIRE.speed, SOULFIRE.steer)
+          );
+        } else {
+          f.body.setVelocity(
+            Phaser.Math.Linear(f.body.velocity.x, f.facing * 34, 0.05),
+            Math.sin(time / 160 + f.fireId) * 22
+          );
+        }
+      }
+      // 殘影（update 驅動，不用 tween）
+      if (time > f.trailAt) {
+        f.trailAt = time + 90;
+        const tr = this.add.image(f.x, f.y, 'fire_0')
+          .setAlpha(0.26).setDepth(9).setTint(0x559955);
+        tr.dieAt = time + 260;
+        this.fireTrails.push(tr);
+      }
+    }
+    if (this.fireTrails.length) {
+      this.fireTrails = this.fireTrails.filter((tr) => {
+        if (time > tr.dieAt) { tr.destroy(); return false; }
+        tr.setAlpha(0.26 * (tr.dieAt - time) / 260);
+        return true;
+      });
     }
 
     // 視差

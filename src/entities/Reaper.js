@@ -24,6 +24,7 @@ export default class Reaper extends Phaser.Physics.Arcade.Sprite {
     this.state = 'intro';
     this.stateUntil = 0;
     this.lastSwing = -1;
+    this.lastFire = -1;
     this.attackIdx = 0;
     this.aimX = 0;
     this.thrown = false;
@@ -45,10 +46,8 @@ export default class Reaper extends Phaser.Physics.Arcade.Sprite {
     return this.phase === 2 ? BOSS.p2SpeedMul : 1;
   }
 
-  /** 回傳是否實際造成傷害（刀氣靠此決定要不要消失） */
-  hitByScythe(swingId) {
-    if (!this.alive || this.lastSwing === swingId || this.state === 'intro') return false;
-    this.lastSwing = swingId;
+  /** 共用受擊內文 */
+  applyBossHit() {
     this.hp -= 1;
     this.scene.registry.set('bossHp', Math.max(0, this.hp));
     sfx.bossHit();
@@ -66,6 +65,20 @@ export default class Reaper extends Phaser.Physics.Arcade.Sprite {
       this.scene.burst(this.x, this.y, 0x8a4df2, 18);
     }
     return true;
+  }
+
+  /** 回傳是否實際造成傷害（刀氣靠此決定要不要消失） */
+  hitByScythe(swingId) {
+    if (!this.alive || this.lastSwing === swingId || this.state === 'intro') return false;
+    this.lastSwing = swingId;
+    return this.applyBossHit();
+  }
+
+  /** 追蹤火命中：獨立 lastFire 去重，不動 lastSwing */
+  hitByFire(fireId) {
+    if (!this.alive || this.lastFire === fireId || this.state === 'intro') return false;
+    this.lastFire = fireId;
+    return this.applyBossHit();
   }
 
   pickAttack(time) {

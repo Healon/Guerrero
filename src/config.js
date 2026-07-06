@@ -76,6 +76,15 @@ export const WEAPON = {
   waveLifeMs: 800     // 刀氣壽命上限
 };
 
+export const SOULFIRE = {
+  speed: 165,         // 追蹤火飛行速度
+  steer: 0.09,        // 轉向趨近係數（越大轉彎越銳利）
+  acquireR: 220,      // 索敵半徑
+  lifeMs: 1800,       // 壽命（需能覆蓋索敵半徑：出生後飄+加速仍追得到 220px 目標）
+  spawnVy: -80,       // 出生上飄初速
+  floatMs: 250        // 出生漂浮期（之後才開始追蹤）
+};
+
 export const AUDIO = {
   master: 0.5,
   sfx: 0.7,
