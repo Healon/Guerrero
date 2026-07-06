@@ -72,6 +72,12 @@ reports/               開發報告
 `PLAYER.iframesMs`（無敵時間）、`ENEMIES.*`、`BOSS.*`（血量/階段門檻/攻速）。
 覺得太難先調：`PLAYER.maxHp: 6→8`、`BOSS.hp: 16→12`。
 
+## AI／開發者交接
+
+後續改版（不限模型）請先讀專案根目錄 [CLAUDE.md](CLAUDE.md)（工作規範與十條鐵則），
+再依 [docs/SPEC.md](docs/SPEC.md)（架構契約）與 [docs/PLAYBOOKS.md](docs/PLAYBOOKS.md)
+（改版劇本＋測試協議）操作；驗收台帳在 [docs/AC.md](docs/AC.md)。
+
 ## 已知限制（demo 範圍）
 
 - 疊起來的木箱打掉下層時上層會懸空（復古遊戲式浮空，暫不處理）
