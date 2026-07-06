@@ -1,0 +1,19 @@
+{
+  "name": "grave-gent",
+  "private": true,
+  "version": "0.1.0",
+  "description": "GRAVE GENT - a Kraino-style retro action platformer demo (original assets)",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "icons": "node scripts/gen-icons.mjs",
+    "build": "vite build && node scripts/stamp-sw.mjs",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "phaser": "^3.87.0"
+  },
+  "devDependencies": {
+    "vite": "^6.3.5"
+  }
+}

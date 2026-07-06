@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <title>GRAVE GENT — retro action platformer demo</title>
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" type="image/png" href="./icons/favicon.png" />
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
+  <meta name="theme-color" content="#06050c" />
+  <style>
+    html, body {
+      margin: 0; padding: 0;
+      width: 100%; height: 100%;
+      background: #06050c;
+      overflow: hidden;
+      touch-action: none;
+      -webkit-user-select: none; user-select: none;
+      -webkit-touch-callout: none;
+    }
+    #app {
+      width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+    }
+    #app canvas {
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+    #boot-msg {
+      position: fixed; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      color: #6f6a8a; font-family: monospace; font-size: 14px;
+      letter-spacing: 2px;
+      pointer-events: none;
+    }
+    #rotate-hint {
+      display: none; position: fixed; inset: 0; z-index: 99;
+      background: #06050c; color: #f2ead8;
+      font-family: monospace; letter-spacing: 2px; text-align: center;
+      flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+    }
+    @media (orientation: portrait) {
+      #rotate-hint { display: flex; }
+    }
+  </style>
+</head>
+<body>
+  <div id="boot-msg">SUMMONING BONES...</div>
+  <div id="app"></div>
+  <div id="rotate-hint">
+    <div style="font-size:44px">⟳</div>
+    <div>ROTATE YOUR DEVICE</div>
+    <div style="color:#8a4df2;font-size:11px">請將裝置轉為橫向</div>
+  </div>
+  <script type="module" src="/src/main.js"></script>
+  <script>
+    // 只在正式站註冊 SW（localhost 開發／預覽不註冊，避免快取干擾迭代）
+    if ('serviceWorker' in navigator &&
+        location.protocol === 'https:' &&
+        !['localhost', '127.0.0.1'].includes(location.hostname)) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>
