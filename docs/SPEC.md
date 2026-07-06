@@ -160,3 +160,9 @@ dodge 導向的刻意例外。一般敵方彈道建議預設：**命中玩家即
 - push main → GitHub Actions（.github/workflows/deploy.yml）→ Pages。
   驗證：`gh run list -R Healon/Guerrero -L 1` 綠＋線上 curl 200。
 - GitHub Pages CDN 對靜態檔有 ~10 分鐘邊緣快取；驗最新 sw 用 `?nc=時間戳` cache-buster。
+- **部署失敗的重試方式（事故實證 2026-07-06）**：Pages 偶發「Deployment failed,
+  try again later」屬後端瞬時錯誤。重試一律用**全新 run**——
+  `gh workflow run deploy.yml -R Healon/Guerrero` 或推一個新 commit。
+  **禁止 `gh run rerun --failed`**：本 workflow 的 build 與 deploy 在同一 job，
+  rerun 會在同一 run 裡二次上傳同名 artifact，deploy-pages@v4 遇到兩個
+  `github-pages` artifact 直接報錯（Artifact count is 2），必失敗。
